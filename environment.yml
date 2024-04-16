@@ -1,0 +1,10 @@
+name: pypaescal
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - xarray
+  - scipy
+  - netCDF4
+  - matplotlib
+  - PyPDF2
