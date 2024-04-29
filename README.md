@@ -7,10 +7,6 @@ Git clone the repo and activate e3sm-unified environment for compiling and runni
 ```bash
 source /global/common/software/e3sm/anaconda_envs/load_latest_e3sm_unified_pm-cpu.sh
 ```
-To use the `-plot` option which calls `pypaescal` we need to activate [`pypaescal` environment](https://github.com/PAESCAL-SciDAC5/CLUBB-fork/tree/thbranch/paescal_scripts/pypaescal#installation) as well
-```bash
-conda activate pypaescal
-```
 Optional: Users may export $CLUBBHOME env variable in the `.bashrc` file.
 ```bash
 vi ~/.bashrc
