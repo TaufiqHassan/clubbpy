@@ -92,3 +92,22 @@ To clean, compile, and running 3 no radiation simulations with dz of 10, 100, an
 python scm_test.py -dz 10 100 10 -zmfname '' '' /user/input/file/directory/zm_E50.txt -grid 1 1 3 -rad_scheme none none none -compile
 ```
 It will generate a log.clubb file and produce the outputs in $CLUBBHOME/output directory.
+
+Batch job example
+-----------------
+Users may submit `clubbpy` runs as batch jobs. For example we can submit multiple convergence tests using the following bash script
+```bash
+#!/bin/bash -l
+#SBATCH --job-name=clubbpy
+#SBATCH --output=clubbpy.o%j
+#SBATCH --account=<account>
+#SBATCH --nodes=1
+#SBATCH --time=02:00:00
+#SBATCH --qos=regular
+#SBATCH --constraint=cpu
+
+source /global/common/software/e3sm/anaconda_envs/load_latest_e3sm_unified_pm-cpu.sh
+module load gcc-native/12.3
+# user-defined environment
+python scm_test.py -c dycoms2_rf02_nd -ctest baseline -tinit 0 -tfinal 21600 -dtout 60 -dt 1 0.5 0.125 -ref 3 4 5
+```

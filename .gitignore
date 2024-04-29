@@ -13,3 +13,5 @@ build/
 develop-eggs/
 dist/
 log.clubb
+clubbpy.o*
+
