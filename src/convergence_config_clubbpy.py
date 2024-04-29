@@ -15,7 +15,7 @@ import os
 import sys
 import shutil
 from pathlib import Path
-from convergence_function import modify_ic_profile
+from src.convergence_function import modify_ic_profile
 import fnmatch
 
 # check that Python 3 is being used

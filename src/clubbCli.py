@@ -2,8 +2,8 @@ import time
 import argparse
 import logging
 
-from clubbCompile import compile_clubb_standalone
-from clubbUtil import exec_shell, assert_len, manage_clubb_dirs
+from src.clubbCompile import compile_clubb_standalone
+from src.clubbUtil import exec_shell, assert_len, manage_clubb_dirs
 
 def main():
     

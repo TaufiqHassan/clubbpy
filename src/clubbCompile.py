@@ -2,7 +2,7 @@ from pathlib import Path
 import logging
 import time
 
-from clubbUtil import exec_shell
+from src.clubbUtil import exec_shell
 
 def compile_clubb_standalone(clubb_dir,clubb_config,clubb_compile):
     ## Find current default GNU NETCDF directory
