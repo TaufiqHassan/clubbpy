@@ -49,11 +49,31 @@ def manage_clubb_dirs(path,casename):
     with open(clubb_scripts / 'run_scm.bash','r') as file:
         filedata = file.read()
         filedata = filedata.replace('../',str(clubb_dir)+'/')
-        filedata = filedata.replace('_model.in','_model.in.template')
-        filedata = filedata.replace('configurable_model_flags.in','configurable_model_flags.in.template')
-        filedata = filedata.replace('tunable_parameters.in','tunable_parameters.in.template')
-        filedata = filedata.replace('standard_stats.in.in','standard_stats.in.in.template')
+        filedata = filedata.replace('/input/','/paescal_exp/')
+        filedata = filedata.replace('/tunable_parameters/','/{EXPNAME}/casefiles/')
+        filedata = filedata.replace('/stats/','/{EXPNAME}/casefiles/')
+        filedata = filedata.replace('/case_setups/','/{EXPNAME}/casefiles/')
+        filedata = filedata.replace('/output/','/paescal_exp/{EXPNAME}/output/')
     with open(clubb_scripts / 'run_scm_paescal.bash','w') as file:
-            file.write(filedata)
+        file.write(filedata)
     exec_shell(f'chmod 777 {str(clubb_scripts)}/run_scm_paescal.bash')
     return clubb_dir, clubb_config, clubb_compile, case_file, clubb_cases, clubb_scripts, tunable_dir
+
+def get_caseNoutPath(path,expname):
+    if path == None:
+        clubb_dir = Path(os.path.expandvars("$CLUBBHOME"))
+    else:
+        clubb_dir = Path(path)
+    
+    casefiles_path = clubb_dir / 'paescal_exp' / expname / 'casefiles'
+    output_path = clubb_dir / 'paescal_exp' / expname / 'output'
+    
+    if not os.path.exists(casefiles_path):
+        logging.info("\n"+str(casefiles_path)+" doesn't exist. Creating one...\n")
+        os.makedirs(str(casefiles_path))
+    
+    if not os.path.exists(output_path):
+        logging.info("\n"+str(output_path)+" doesn't exist. Creating one...\n")
+        os.makedirs(str(output_path))
+    
+    return casefiles_path, output_path

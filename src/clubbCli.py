@@ -3,7 +3,7 @@ import argparse
 import logging
 
 from src.clubbCompile import compile_clubb_standalone
-from src.clubbUtil import exec_shell, assert_len, manage_clubb_dirs
+from src.clubbUtil import exec_shell, assert_len, manage_clubb_dirs, get_caseNoutPath
 
 def main():
     
@@ -14,7 +14,7 @@ def main():
             )
     
     general = parser.add_argument_group("General arguments","Takes single or no input")
-    general.add_argument("-c", help="CLUBB Case.\nDefault case: dycoms2_rf01", default='dycoms2_rf01')
+    general.add_argument("-c", help="CLUBB Casename.\nDefault case: dycoms2_rf01", default='dycoms2_rf01')
     general.add_argument("-d", help="CLUBB model directory.\nDefault directory is defined by $CLUBBHOME", default=None)
     general.add_argument("-compile", "--compile", help="Clean and compile CLUBB first. (No input)", action='store_true', default=None)
     general.add_argument("-plot", "--plot", help="Produce pypaescal plots. (No input)", action='store_true', default=None)
@@ -22,6 +22,7 @@ def main():
     general.add_argument("-prog_upwp", help="Control 'l_predict_upwp_vpwp' Flag.", default='on')
     
     param = parser.add_argument_group("Case parameters","Allows multiple inputs")
+    param.add_argument("-e", nargs='+', type=str, help="User-defined experiment names.", default=[''])
     param.add_argument("-zmax", nargs='+', type=int, help="Number of vertical levels.", default=[132])
     param.add_argument("-grid", nargs='+', type=int, \
                        help="Select grid type:\n1 ==> evenly-spaced grid levels\n2 ==> stretched (unevenly-spaced) grid\nentered on thermodynamic grid levels;\n3 ==> stretched (unevenly-spaced) grid\nentered on momentum grid levels;",\
@@ -93,9 +94,11 @@ def main():
             
             exec_shell(config_string)
             
-            caseFile = open(case_file / 'configurable_model_flags.in', 'r')
+            flags_file = open(case_file / 'configurable_model_flags.in', 'r')
             flag_lines = flags_file.readlines()
             flags_file.close()
+            
+            casefiles_path, output_path = get_caseNoutPath(args.d,args.e)
             
             with open(tunable_dir / 'configurable_model_flags.in.template','w') as file:
                 for line in flag_lines:

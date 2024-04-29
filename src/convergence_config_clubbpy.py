@@ -14,9 +14,10 @@ import numpy as np
 import os
 import sys
 import shutil
-from pathlib import Path
-from src.convergence_function import modify_ic_profile
 import fnmatch
+from pathlib import Path
+
+from src.convergence_function import modify_ic_profile
 
 # check that Python 3 is being used
 if (sys.version_info.major < 3):
