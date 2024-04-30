@@ -102,7 +102,7 @@ def main():
             
             casefiles_path, output_path = get_caseNoutPath(args.d,args.e)
             
-            with open(tunable_dir / 'configurable_model_flags.in.template','w') as file:
+            with open(casefiles_path / 'configurable_model_flags.in','w') as file:
                 for line in flag_lines:
                     file.write(line+"\n")
             
@@ -136,7 +136,7 @@ def main():
             if flag_lines[i].startswith('l_predict_upwp_vpwp'):
                 flag_lines[i] = 'l_predict_upwp_vpwp = '+on_off_switch[args.prog_upwp]+','
         
-        with open(tunable_dir / 'configurable_model_flags.in.template','w') as file:
+        with open(casefiles_path / 'configurable_model_flags.in','w') as file:
             for line in flag_lines:
                 file.write(line+"\n")
 
@@ -190,14 +190,20 @@ def main():
                 exp = args.c+'_dt'+str(int(float(dt)))+'-zmax'+str(int(float(z)))+'-dz'+str(int(float(dz)))+'-'+str((rad))+'-'+str(int(g))+'-taus'+args.taus+'-prog_upwp'+args.prog_upwp
             casefiles_path, output_path = get_caseNoutPath(args.d,exp)
             
-            with open(clubb_cases / str(args.c+'_model.in.template'),'w') as file:
+            with open(casefiles_path / str(args.c+'_model.in'),'w') as file:
                 for line in lines:
                     file.write(line+"\n")
                     
             outdir = clubb_dir / 'paescal_exp' / exp / 'output'
             outdirnames.append(outdir)
             
+            ## Update the run script
+            with open(clubb_scripts / 'run_scm_paescal.bash','r') as file:
+                filedata = file.read()
+                filedata = filedata.replace('{EXPNAME}',exp)
             shutil.move(os.path.join(str(clubb_scripts),'run_scm_paescal.bash'), os.path.join(str(casefiles_path),'run_scm_paescal.bash'))
+            with open(casefiles_path / 'run_scm_paescal.bash','w') as file:
+                file.write(filedata)
             exec_shell(f'{str(casefiles_path)}/run_scm_paescal.bash {args.c} -o {outdir}')
     
     if args.plot:
