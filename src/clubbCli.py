@@ -1,6 +1,8 @@
 import time
 import argparse
 import logging
+import shutil
+import os
 
 from src.clubbCompile import compile_clubb_standalone
 from src.clubbUtil import exec_shell, assert_len, manage_clubb_dirs, get_caseNoutPath
@@ -139,7 +141,7 @@ def main():
                 file.write(line+"\n")
 
         outdirnames = []
-        for z,g,dz,btm,top,tname,mname,dt,rad,ts,tf,st in zip(*paramLists):
+        for exp,z,g,dz,btm,top,tname,mname,dt,rad,ts,tf,st in zip(*paramLists):
             
             if mname != '':
                 with open(mname,'r') as file:
@@ -182,21 +184,26 @@ def main():
                     lines[i] = 'rad_scheme = "'+ str(rad) + '"'
                     if rad == "none":
                         lines[i] = 'rad_scheme = "'+ str(rad) + '"' + '\n' + 'l_calc_thlp2_rad = .false.'
-        
+            
+            # casefiles and output path
+            if exp == '':
+                exp = args.c+'_dt'+str(int(float(dt)))+'-zmax'+str(int(float(z)))+'-dz'+str(int(float(dz)))+'-'+str((rad))+'-'+str(int(g))+'-taus'+args.taus+'-prog_upwp'+args.prog_upwp
+            casefiles_path, output_path = get_caseNoutPath(args.d,exp)
+            
             with open(clubb_cases / str(args.c+'_model.in.template'),'w') as file:
                 for line in lines:
                     file.write(line+"\n")
                     
-            outdirname = args.c+'_dt'+str(int(float(dt)))+'-zmax'+str(int(float(z)))+'-dz'+str(int(float(dz)))+'-'+str((rad))+'-'+str(int(g))+'-taus'+args.taus+'-prog_upwp'+args.prog_upwp
-            outdirnames.append(outdirname)
-            outdir = clubb_dir / 'output' / outdirname
+            outdir = clubb_dir / 'paescal_exp' / exp / 'output'
+            outdirnames.append(outdir)
             
-            exec_shell(f'{str(clubb_scripts)}/run_scm_paescal.bash {args.c} -o {outdir}')
+            shutil.move(os.path.join(str(clubb_scripts),'run_scm_paescal.bash'), os.path.join(str(casefiles_path),'run_scm_paescal.bash'))
+            exec_shell(f'{str(casefiles_path)}/run_scm_paescal.bash {args.c} -o {outdir}')
     
     if args.plot:
         pypaescal_dir = clubb_dir / 'paescal_scripts' / 'pypaescal'
         cases = ' '.join(outdirnames)
-        exec_shell(f'python {str(pypaescal_dir)}/pypaescal.py -datapath {str(clubb_dir)}/output -c {cases} -o {str(clubb_dir)}/output --pdf')
+        exec_shell(f'python {str(pypaescal_dir)}/pypaescal.py -c {cases} -o {str(clubb_dir)}/output --pdf')
     
     finish = time.perf_counter()
 
