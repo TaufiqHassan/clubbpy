@@ -108,6 +108,7 @@ def main():
             shutil.move(os.path.join(str(tunable_dir),'tunable_parameters.in.template'), os.path.join(str(casefiles_path),'tunable_parameters.in'))
             shutil.move(os.path.join(str(stat_dir),'standard_stats.in.template'), os.path.join(str(casefiles_path),'standard_stats.in'))
             shutil.move(os.path.join(str(clubb_cases),str(args.c+'_model.in.template')), os.path.join(str(casefiles_path),str(args.c+'_model.in')))
+            shutil.move(os.path.join(str(clubb_scripts),str('run_scm_paescal.bash')), os.path.join(str(casefiles_path),str('run_scm_paescal.bash')))
         
         logging.info('\n==Convergence Tests Finished==')
     else:
@@ -213,11 +214,12 @@ def main():
             exec_shell(f'{str(clubb_scripts)}/run_scm_paescal.bash {args.c} -o {outdir}')
 
             ## Provenance
-            logging.info('\nMoving casefile, parameter file, flags file, and stats file to experiement directory for Provenance / reproducibility.') 
+            logging.info('\nMoving casefile, parameter file, flags file, stats file, and run script file to experiement directory for Provenance / reproducibility.') 
             shutil.move(os.path.join(str(tunable_dir),'configurable_model_flags.in.template'), os.path.join(str(casefiles_path),'configurable_model_flags.in'))
             shutil.move(os.path.join(str(tunable_dir),'tunable_parameters.in.template'), os.path.join(str(casefiles_path),'tunable_parameters.in'))
             shutil.move(os.path.join(str(stat_dir),'standard_stats.in.template'), os.path.join(str(casefiles_path),'standard_stats.in'))
             shutil.move(os.path.join(str(clubb_cases),str(args.c+'_model.in.template')), os.path.join(str(casefiles_path),str(args.c+'_model.in')))
+            shutil.move(os.path.join(str(clubb_scripts),str('run_scm_paescal.bash')), os.path.join(str(casefiles_path),str('run_scm_paescal.bash')))
             logging.info('\nMoving user-defined grid file to experiement directory for Provenance / reproducibility.')
             if os.path.exists(mname):
                 grd_name = mname.strip().split('/')[-1].strip()
