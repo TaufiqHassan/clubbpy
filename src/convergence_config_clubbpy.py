@@ -24,6 +24,7 @@ if (sys.version_info.major < 3):
   sys.exit('must use Python 3 instead of {}'.format(sys.version))
 
 # get CLUBB root directory (assumed to be two above the CWD) and set directories
+## This is an abomination! May be I'll fix it later...
 #clubb_dir = os.path.join(os.getcwd(),'../..')
 clubb_dir = str(Path('../..').resolve())
 print(str(clubb_dir))
@@ -210,7 +211,6 @@ namelist_file.close()
 model_file      = open(out_file_name, 'r')
 model_config    = model_file.readlines()
 model_file.close()
-shutil.move(out_file_name, os.path.join(case_dir,out_file_name))
 # create a file to save the modified namelist 
 # use concatenated model file name from specified parameters
 # unless user specified their own name
@@ -440,6 +440,7 @@ for line in model_config:
     modified_lines.append(line)
 
 model_file.close()
+shutil.move(out_file_name, os.path.join(case_dir,parameters['case']+'_model.in.template'))
 
 print('Wrote ' + model_file_name + ' file with the following modified lines:\n')
 for line in modified_lines:
@@ -449,7 +450,6 @@ for line in modified_lines:
 caseFile = open(model_file_name, 'r')
 caseFile_lines = caseFile.readlines()
 caseFile.close()
-
 if os.path.isfile(model_file_name):
     os.remove(model_file_name)
 else:
@@ -490,6 +490,6 @@ print('Template configurable flags file:',os.path.join(tunable_dir,'configurable
 svalue = fnmatch.filter(caseFile_lines,'&statsnl*')
 sind = caseFile_lines.index(svalue[0])
 data = ''.join(caseFile_lines[sind:])
-with open(os.path.join(stats_dir,'standard_stats.in.in.template'),'w') as file:
+with open(os.path.join(stats_dir,'standard_stats.in.template'),'w') as file:
     file.write(data)
-print('Template stats file:',os.path.join(stats_dir,'standard_stats.in.in.template'))
+print('Template stats file:',os.path.join(stats_dir,'standard_stats.in.template'))

@@ -16,3 +16,5 @@ dist/
 log.clubb
 clubbpy.o*
 *bk.py
+*.in
+*.grd

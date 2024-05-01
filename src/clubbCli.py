@@ -1,6 +1,8 @@
 import time
 import argparse
 import logging
+import shutil
+import os
 
 from src.clubbCompile import compile_clubb_standalone
 from src.clubbUtil import exec_shell, assert_len, manage_clubb_dirs, get_caseNoutPath
@@ -95,10 +97,16 @@ def main():
             
             outdirname = args.c+'_dt'+str((float(dt)))+'-ref'+str(int(float(ref)))+'-ctest-'+str(args.ctest)
             outdirname = outdirname.replace('.','p')
-            outdirnames.append(outdirname)
-            outdir = clubb_dir / 'output' / outdirname
-            
+            casefiles_path, output_path = get_caseNoutPath(args.d,outdirname)
+            outdir = clubb_dir / 'paescal_exp' / outdirname / 'output'
+            outdirnames.append(outdir)
+
             exec_shell(f'{str(clubb_scripts)}/run_scm_paescal.bash {args.c} -o {outdir}')
+
+            shutil.move(os.path.join(str(tunable_dir),'configurable_model_flags.in.template'), os.path.join(str(casefiles_path),'configurable_model_flags.in'))
+            shutil.move(os.path.join(str(tunable_dir),'tunable_parameters.in.template'), os.path.join(str(casefiles_path),'tunable_parameters.in'))
+            shutil.move(os.path.join(str(stat_dir),'standard_stats.in.template'), os.path.join(str(casefiles_path),'standard_stats.in'))
+            shutil.move(os.path.join(str(clubb_cases),str(args.c+'_model.in.template')), os.path.join(str(casefiles_path),str(args.c+'_model.in')))
         
         logging.info('\n==Convergence Tests Finished==')
     else:
@@ -192,12 +200,15 @@ def main():
                     
             outdirname = args.c+'_dt'+str(int(float(dt)))+'-zmax'+str(int(float(z)))+'-dz'+str(int(float(dz)))+'-'+str((rad))+'-'+str(int(g))+'-taus'+args.taus+'-prog_upwp'+args.prog_upwp
             casefiles_path, output_path = get_caseNoutPath(args.d,outdirname)
-            #outdirnames.append(outdirname)
-            #outdir = clubb_dir / 'output' / outdirname
             outdir = clubb_dir / 'paescal_exp' / outdirname / 'output'
             outdirnames.append(outdir)
             
             exec_shell(f'{str(clubb_scripts)}/run_scm_paescal.bash {args.c} -o {outdir}')
+
+            shutil.move(os.path.join(str(tunable_dir),'configurable_model_flags.in.template'), os.path.join(str(casefiles_path),'configurable_model_flags.in'))
+            shutil.move(os.path.join(str(tunable_dir),'tunable_parameters.in.template'), os.path.join(str(casefiles_path),'tunable_parameters.in'))
+            shutil.move(os.path.join(str(stat_dir),'standard_stats.in.template'), os.path.join(str(casefiles_path),'standard_stats.in'))
+            shutil.move(os.path.join(str(clubb_cases),str(args.c+'_model.in.template')), os.path.join(str(casefiles_path),str(args.c+'_model.in')))
     
     if args.plot:
         pypaescal_dir = clubb_dir / 'paescal_scripts' / 'pypaescal'
