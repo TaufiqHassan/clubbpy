@@ -1,8 +1,6 @@
 import time
 import argparse
 import logging
-import shutil
-import os
 
 from src.clubbCompile import compile_clubb_standalone
 from src.clubbUtil import exec_shell, assert_len, manage_clubb_dirs, get_caseNoutPath
@@ -16,7 +14,7 @@ def main():
             )
     
     general = parser.add_argument_group("General arguments","Takes single or no input")
-    general.add_argument("-c", help="CLUBB Casename.\nDefault case: dycoms2_rf01", default='dycoms2_rf01')
+    general.add_argument("-c", help="CLUBB Case.\nDefault case: dycoms2_rf01", default='dycoms2_rf01')
     general.add_argument("-d", help="CLUBB model directory.\nDefault directory is defined by $CLUBBHOME", default=None)
     general.add_argument("-compile", "--compile", help="Clean and compile CLUBB first. (No input)", action='store_true', default=None)
     general.add_argument("-plot", "--plot", help="Produce pypaescal plots. (No input)", action='store_true', default=None)
@@ -24,7 +22,6 @@ def main():
     general.add_argument("-prog_upwp", help="Control 'l_predict_upwp_vpwp' Flag.", default='on')
     
     param = parser.add_argument_group("Case parameters","Allows multiple inputs")
-    param.add_argument("-e", nargs='+', type=str, help="User-defined experiment names.", default=[''])
     param.add_argument("-zmax", nargs='+', type=int, help="Number of vertical levels.", default=[132])
     param.add_argument("-grid", nargs='+', type=int, \
                        help="Select grid type:\n1 ==> evenly-spaced grid levels\n2 ==> stretched (unevenly-spaced) grid\nentered on thermodynamic grid levels;\n3 ==> stretched (unevenly-spaced) grid\nentered on momentum grid levels;",\
@@ -59,7 +56,7 @@ def main():
     ## CLUBB directories and run script management
     clubb_dir, clubb_config, clubb_compile, \
     case_file, clubb_cases, clubb_scripts, \
-    tunable_dir = manage_clubb_dirs(args.d,args.c)
+    tunable_dir, stat_dir = manage_clubb_dirs(args.d,args.c)
 
     # Setting up a logfile to track compilation
     clubbpydir = clubb_dir / 'paescal_scripts' / 'clubbpy'
@@ -78,15 +75,15 @@ def main():
         outdirnames = []
         for ref,dt,t0,tf,dtout in zip(args.ref,args.dt,args.tinit,args.tfinal,args.dtout):
             if args.ctest == 'default':
-                config_string = f'python {str(clubbpydir)}/convergence_config_clubbpy.py \
+                config_string = f'python {str(clubbpydir)}/src/convergence_config_clubbpy.py \
                                {args.c}  -micro-off -rad-off -splat-off -standard-aterms \
                                -ref {ref} -dt {dt} -ti {t0} -tf {tf} -dto {dtout}'
             elif args.ctest == 'baseline':
-                config_string = f'python {str(clubbpydir)}/convergence_config_clubbpy.py \
+                config_string = f'python {str(clubbpydir)}/src/convergence_config_clubbpy.py \
                                 {args.c}  -micro-off -rad-off -splat-off -standard-aterms \
                                 -new-ic -new-bc -ref {ref} -dt {dt} -ti {t0} -tf {tf} -dto {dtout}'
             elif args.ctest == 'revall':
-                config_string = f'python {str(clubbpydir)}/convergence_config_clubbpy.py \
+                config_string = f'python {str(clubbpydir)}/src/convergence_config_clubbpy.py \
                                 {args.c}  -micro-off -rad-off -splat-off -standard-aterms \
                                 -new-ic -new-bc -new-lim -smooth-tau -lin-diff -new-wp3cl \
                                 -ref {ref} -dt {dt} -ti {t0} -tf {tf} -dto {dtout}'
@@ -95,16 +92,6 @@ def main():
                 raise SystemExit
             
             exec_shell(config_string)
-            
-            flags_file = open(case_file / 'configurable_model_flags.in', 'r')
-            flag_lines = flags_file.readlines()
-            flags_file.close()
-            
-            casefiles_path, output_path = get_caseNoutPath(args.d,args.e)
-            
-            with open(casefiles_path / 'configurable_model_flags.in','w') as file:
-                for line in flag_lines:
-                    file.write(line+"\n")
             
             outdirname = args.c+'_dt'+str((float(dt)))+'-ref'+str(int(float(ref)))+'-ctest-'+str(args.ctest)
             outdirname = outdirname.replace('.','p')
@@ -115,6 +102,7 @@ def main():
         
         logging.info('\n==Convergence Tests Finished==')
     else:
+        # "case" file
         origFile = open(case_file,'r')
         lines = origFile.readlines()
         origFile.close()
@@ -129,6 +117,11 @@ def main():
         flag_lines = flags_file.readlines()
         flags_file.close()
         
+        # "stats" file
+        stats_file = open(stat_dir / 'standard_stats.in', 'r')
+        stat_lines = stats_file.readlines()
+        stats_file.close()
+
         for i in range(len(flag_lines)):
             flag_lines[i] = flag_lines[i].rstrip()
             if flag_lines[i].startswith('l_diag_Lscale_from_tau'):
@@ -136,12 +129,20 @@ def main():
             if flag_lines[i].startswith('l_predict_upwp_vpwp'):
                 flag_lines[i] = 'l_predict_upwp_vpwp = '+on_off_switch[args.prog_upwp]+','
         
-        with open(casefiles_path / 'configurable_model_flags.in','w') as file:
+        with open(tunable_dir / 'configurable_model_flags.in.template','w') as file:
             for line in flag_lines:
+                file.write(line+"\n")
+        
+        with open(tunable_dir / 'tunable_parameters.in.template','w') as file:
+            for line in param_lines:
+                file.write(line+"\n")
+
+        with open(stat_dir / 'standard_stats.in.template','w') as file:
+            for line in stat_lines:
                 file.write(line+"\n")
 
         outdirnames = []
-        for exp,z,g,dz,btm,top,tname,mname,dt,rad,ts,tf,st in zip(*paramLists):
+        for z,g,dz,btm,top,tname,mname,dt,rad,ts,tf,st in zip(*paramLists):
             
             if mname != '':
                 with open(mname,'r') as file:
@@ -184,32 +185,24 @@ def main():
                     lines[i] = 'rad_scheme = "'+ str(rad) + '"'
                     if rad == "none":
                         lines[i] = 'rad_scheme = "'+ str(rad) + '"' + '\n' + 'l_calc_thlp2_rad = .false.'
-            
-            # casefiles and output path
-            if exp == '':
-                exp = args.c+'_dt'+str(int(float(dt)))+'-zmax'+str(int(float(z)))+'-dz'+str(int(float(dz)))+'-'+str((rad))+'-'+str(int(g))+'-taus'+args.taus+'-prog_upwp'+args.prog_upwp
-            casefiles_path, output_path = get_caseNoutPath(args.d,exp)
-            
-            with open(casefiles_path / str(args.c+'_model.in'),'w') as file:
+        
+            with open(clubb_cases / str(args.c+'_model.in.template'),'w') as file:
                 for line in lines:
                     file.write(line+"\n")
                     
-            outdir = clubb_dir / 'paescal_exp' / exp / 'output'
+            outdirname = args.c+'_dt'+str(int(float(dt)))+'-zmax'+str(int(float(z)))+'-dz'+str(int(float(dz)))+'-'+str((rad))+'-'+str(int(g))+'-taus'+args.taus+'-prog_upwp'+args.prog_upwp
+            casefiles_path, output_path = get_caseNoutPath(args.d,outdirname)
+            #outdirnames.append(outdirname)
+            #outdir = clubb_dir / 'output' / outdirname
+            outdir = clubb_dir / 'paescal_exp' / outdirname / 'output'
             outdirnames.append(outdir)
             
-            ## Update the run script
-            with open(clubb_scripts / 'run_scm_paescal.bash','r') as file:
-                filedata = file.read()
-                filedata = filedata.replace('{EXPNAME}',exp)
-            shutil.move(os.path.join(str(clubb_scripts),'run_scm_paescal.bash'), os.path.join(str(casefiles_path),'run_scm_paescal.bash'))
-            with open(casefiles_path / 'run_scm_paescal.bash','w') as file:
-                file.write(filedata)
-            exec_shell(f'{str(casefiles_path)}/run_scm_paescal.bash {args.c} -o {outdir}')
+            exec_shell(f'{str(clubb_scripts)}/run_scm_paescal.bash {args.c} -o {outdir}')
     
     if args.plot:
         pypaescal_dir = clubb_dir / 'paescal_scripts' / 'pypaescal'
         cases = ' '.join(outdirnames)
-        exec_shell(f'python {str(pypaescal_dir)}/pypaescal.py -c {cases} -o {str(clubb_dir)}/output --pdf')
+        exec_shell(f'python {str(pypaescal_dir)}/pypaescal.py -datapath {str(clubb_dir)}/output -c {cases} -o {str(clubb_dir)}/output --pdf')
     
     finish = time.perf_counter()
 

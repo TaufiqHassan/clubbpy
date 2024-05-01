@@ -7,7 +7,7 @@
 # The script only well tested for BOMEX, RICO, DYCOMS2_RF02 and Wangara cases 
 # original script developer: Chris Vogl (vogl2@llnl.gov)
 # revised by Shixuan Zhang (shixuan.zhang@pnnl.gov) 
-#
+# adjusted for clubbpy by Taufiq Hassan (taufiq.hassan@pnnl.gov)
 #######################################################################
 import argparse
 import numpy as np
@@ -17,7 +17,7 @@ import shutil
 import fnmatch
 from pathlib import Path
 
-from src.convergence_function import modify_ic_profile
+from convergence_function import modify_ic_profile
 
 # check that Python 3 is being used
 if (sys.version_info.major < 3):
@@ -26,6 +26,7 @@ if (sys.version_info.major < 3):
 # get CLUBB root directory (assumed to be two above the CWD) and set directories
 #clubb_dir = os.path.join(os.getcwd(),'../..')
 clubb_dir = str(Path('../..').resolve())
+print(str(clubb_dir))
 output_dir = os.path.join(clubb_dir, 'output')
 case_dir = os.path.join(clubb_dir, 'input', 'case_setups')
 grid_dir = os.path.join(clubb_dir, 'input', 'grid')
@@ -463,8 +464,6 @@ eind = caseFile_lines.index(evalue[0])
 data = ''.join(caseFile_lines[sind:eind])
 with open(os.path.join(case_dir,parameters['case'] + '_model.in.template'),'w') as file:
     file.write(data)
-
-#shutil.move(model_file_name, os.path.join(case_dir,parameters['case'] + '_model.in.template'))
 print('Template case input file:',os.path.join(case_dir,parameters['case'] + '_model.in.template'))
 
 ## Insert to tunable_parameter.in file
