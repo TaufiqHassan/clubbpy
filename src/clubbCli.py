@@ -24,6 +24,7 @@ def main():
     general.add_argument("-prog_upwp", help="Control 'l_predict_upwp_vpwp' Flag.", default='on')
     
     param = parser.add_argument_group("Case parameters","Allows multiple inputs")
+    param.add_argument("-e", nargs='+', type=str, help="User-defined experiment names.\nBy default names are assigned based on dz/dt etc.", default=[''])
     param.add_argument("-zmax", nargs='+', type=int, help="Number of vertical levels.", default=[132])
     param.add_argument("-grid", nargs='+', type=int, \
                        help="Select grid type:\n1 ==> evenly-spaced grid levels\n2 ==> stretched (unevenly-spaced) grid\nentered on thermodynamic grid levels;\n3 ==> stretched (unevenly-spaced) grid\nentered on momentum grid levels;",\
@@ -150,7 +151,7 @@ def main():
                 file.write(line+"\n")
 
         outdirnames = []
-        for z,g,dz,btm,top,tname,mname,dt,rad,ts,tf,st in zip(*paramLists):
+        for outdirname,z,g,dz,btm,top,tname,mname,dt,rad,ts,tf,st in zip(*paramLists):
             
             if mname != '':
                 with open(mname,'r') as file:
@@ -198,7 +199,8 @@ def main():
                 for line in lines:
                     file.write(line+"\n")
                     
-            outdirname = args.c+'_dt'+str(int(float(dt)))+'-zmax'+str(int(float(z)))+'-dz'+str(int(float(dz)))+'-'+str((rad))+'-'+str(int(g))+'-taus'+args.taus+'-prog_upwp'+args.prog_upwp
+            if outdirname == '':
+                outdirname = args.c+'_dt'+str(int(float(dt)))+'-zmax'+str(int(float(z)))+'-dz'+str(int(float(dz)))+'-'+str((rad))+'-'+str(int(g))+'-taus'+args.taus+'-prog_upwp'+args.prog_upwp
             casefiles_path, output_path = get_caseNoutPath(args.d,outdirname)
             outdir = clubb_dir / 'paescal_exp' / outdirname / 'output'
             outdirnames.append(outdir)
