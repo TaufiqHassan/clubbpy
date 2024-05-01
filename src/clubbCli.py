@@ -154,10 +154,14 @@ def main():
         for outdirname,z,g,dz,btm,top,tname,mname,dt,rad,ts,tf,st in zip(*paramLists):
             
             if mname != '':
+                g = 3
+                logging.info('\nSelected zm grid: '+mname)
                 with open(mname,'r') as file:
                     filedata = file.read().strip()
                     z = len(filedata.split('\n'))
             if tname != '':
+                g = 2
+                logging.info('\nSelected zt grid: '+tname)
                 with open(tname,'r') as file:
                     filedata = file.read().strip()
                     z = len(filedata.split('\n'))
@@ -205,12 +209,22 @@ def main():
             outdir = clubb_dir / 'paescal_exp' / outdirname / 'output'
             outdirnames.append(outdir)
             
+            ## Running SCM
             exec_shell(f'{str(clubb_scripts)}/run_scm_paescal.bash {args.c} -o {outdir}')
 
+            ## Provenance
+            logging.info('\nMoving casefile, parameter file, flags file, and stats file to experiement directory for Provenance / reproducibility.') 
             shutil.move(os.path.join(str(tunable_dir),'configurable_model_flags.in.template'), os.path.join(str(casefiles_path),'configurable_model_flags.in'))
             shutil.move(os.path.join(str(tunable_dir),'tunable_parameters.in.template'), os.path.join(str(casefiles_path),'tunable_parameters.in'))
             shutil.move(os.path.join(str(stat_dir),'standard_stats.in.template'), os.path.join(str(casefiles_path),'standard_stats.in'))
             shutil.move(os.path.join(str(clubb_cases),str(args.c+'_model.in.template')), os.path.join(str(casefiles_path),str(args.c+'_model.in')))
+            logging.info('\nMoving user-defined grid file to experiement directory for Provenance / reproducibility.')
+            if os.path.exists(mname):
+                grd_name = mname.strip().split('/')[-1].strip()
+                shutil.copy(mname, os.path.join(str(casefiles_path),grd_name))
+            elif os.path.exists(tname):
+                grd_name = tname.strip().split('/')[-1].strip()
+                shutil.copy(tname, os.path.join(str(casefiles_path),grd_name))
     
     if args.plot:
         pypaescal_dir = clubb_dir / 'paescal_scripts' / 'pypaescal'

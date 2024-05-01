@@ -47,6 +47,8 @@ General arguments:
 Case parameters:
   Allows multiple inputs
 
+  -e E [E ...]          User-defined experiment names.
+                        By default names are assigned based on dz/dt etc.
   -zmax ZMAX [ZMAX ...]
                         Number of vertical levels.
   -grid GRID [GRID ...]
