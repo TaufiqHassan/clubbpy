@@ -100,7 +100,7 @@ def main():
             outdirname = outdirname.replace('.','p')
             casefiles_path, output_path = get_caseNoutPath(args.d,outdirname)
             outdir = clubb_dir / 'paescal_exp' / outdirname / 'output'
-            outdirnames.append(outdir)
+            outdirnames.append(str(outdir))
 
             exec_shell(f'{str(clubb_scripts)}/run_scm_paescal.bash {args.c} -o {outdir}')
 
@@ -208,7 +208,7 @@ def main():
                 outdirname = args.c+'_dt'+str(int(float(dt)))+'-zmax'+str(int(float(z)))+'-dz'+str(int(float(dz)))+'-'+str((rad))+'-'+str(int(g))+'-taus'+args.taus+'-prog_upwp'+args.prog_upwp
             casefiles_path, output_path = get_caseNoutPath(args.d,outdirname)
             outdir = clubb_dir / 'paescal_exp' / outdirname / 'output'
-            outdirnames.append(outdir)
+            outdirnames.append(str(outdir))
             
             ## Running SCM
             exec_shell(f'{str(clubb_scripts)}/run_scm_paescal.bash {args.c} -o {outdir}')
@@ -231,7 +231,9 @@ def main():
     if args.plot:
         pypaescal_dir = clubb_dir / 'paescal_scripts' / 'pypaescal'
         cases = ' '.join(outdirnames)
-        exec_shell(f'python {str(pypaescal_dir)}/pypaescal.py -datapath {str(clubb_dir)}/output -c {cases} -o {str(clubb_dir)}/output --pdf')
+        exec_shell(f'python {str(pypaescal_dir)}/pypaescal.py -c {cases} -o {str(clubb_dir)}/output \
+                   -rows 2 -cols 10 -defvars cloud_frac rcm em wp2 wp3 wpthlp wprtp Lscale Lscale_up \
+                   Lscale_down thlp2 rtp2 rtpthlp upwp vpwp up2 vp2 Lscale Lscale_up Lscale_down --pdf')
     
     finish = time.perf_counter()
 
